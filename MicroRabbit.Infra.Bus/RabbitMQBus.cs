@@ -104,6 +104,7 @@ namespace MicroRabbit.Infra.Bus
             channel.BasicConsume(eventName, true, consumer);
         }
 
+        // EVENT HANDLERS
         private async Task Consumer_Received(object sender, BasicDeliverEventArgs e)
         {
             var eventName = e.RoutingKey;
