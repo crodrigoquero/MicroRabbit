@@ -9,6 +9,7 @@ using MicroRabbit.Banking.Data.Context;
 using MicroRabbit.Infra.IoC;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -36,14 +37,24 @@ namespace MicroRabbit.Banking.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
-            services.AddControllers();
+
+            //services.AddMvc(option => option.EnableEndpointRouting = false);
 
             services.AddDbContext<BankingDbContext>(options =>
                 {
                     options.UseSqlServer(Configuration.GetConnectionString("BankingDbConnection"));
                 }
             );
+
+            services.AddCors();  //Cross-Origin Requests: enable cross origin resources sharing on my ASP.NET Core Web API
+            services.AddControllers();
+
+            services.AddMvcCore()
+                    .AddDataAnnotations()
+                    .AddCors()
+                    .AddXmlSerializerFormatters(); // CONTENT NEGOTIATION SETUP: in order to be able to return content in XML or Json format
+
+
 
             services.AddSwaggerGen();
 
@@ -116,8 +127,8 @@ namespace MicroRabbit.Banking.Api
               .AddXmlSerializerFormatters(); // CONTENT NEGOTIATION SETUP: in order to be able to return content in XML or Json format
 
 
-           // services.AddVersionedApiExplorer(options => options.GroupNameFormat = "'v'VVV");
-           // services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            // services.AddVersionedApiExplorer(options => options.GroupNameFormat = "'v'VVV");
+            // services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
             services.AddMediatR(typeof(Startup));
 
@@ -145,7 +156,9 @@ namespace MicroRabbit.Banking.Api
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
             app.UseSwagger(); // SWAGGER SETUP
             app.UseSwaggerUI(options => {
                 options.SwaggerEndpoint("/swagger/BankingAPISpec/swagger.json", "Companies API");
@@ -153,11 +166,14 @@ namespace MicroRabbit.Banking.Api
 
             });
 
-            app.UseRouting();
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
             });
+
+            app.UseHttpsRedirection();
             //app.UseMvc();
         }
     }
